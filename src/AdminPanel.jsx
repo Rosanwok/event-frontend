@@ -13,7 +13,6 @@ const AdminPanel = () => {
     const [isScanning, setIsScanning] = useState(false);
     const [scanResult, setScanResult] = useState(null);
 
-    // Fetch participants ONLY if authenticated
     useEffect(() => {
         if (isAuthenticated) {
             fetchParticipants();
@@ -30,20 +29,16 @@ const AdminPanel = () => {
         }
     };
 
-    // --- Login Handler ---
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoginError('');
-
         try {
             const response = await fetch('https://event-backend-eyqg.onrender.com/api/admin/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(credentials)
             });
-
             const data = await response.json();
-
             if (data.success) {
                 setIsAuthenticated(true);
             } else {
@@ -54,7 +49,6 @@ const AdminPanel = () => {
         }
     };
 
-    // --- QR Scanner Handler ---
     useEffect(() => {
         if (isScanning && isAuthenticated) {
             const scanner = new Html5QrcodeScanner('reader', { 
@@ -67,7 +61,6 @@ const AdminPanel = () => {
             async function onScanSuccess(decodedText) {
                 scanner.clear();
                 setIsScanning(false);
-                
                 try {
                     const response = await fetch('https://event-backend-eyqg.onrender.com/api/admin/validate', {
                         method: 'POST',
@@ -75,75 +68,54 @@ const AdminPanel = () => {
                         body: JSON.stringify({ ticketId: decodedText })
                     });
                     const result = await response.json();
-                    
                     setScanResult(result);
                     fetchParticipants(); 
                 } catch (error) {
                     setScanResult({ success: false, message: 'Network error during validation.' });
                 }
             }
-
-            function onScanFailure(error) { /* Ignore background errors */ }
-
+            function onScanFailure(error) { }
             return () => {
                 scanner.clear().catch(error => console.error("Failed to clear scanner", error));
             };
         }
     }, [isScanning, isAuthenticated]);
 
-    // ==========================================
-    // RENDER: Login Screen
-    // ==========================================
     if (!isAuthenticated) {
         return (
             <div style={styles.loginContainer}>
-                          <img src={logo} alt="HUST Logo" style={{ width: '150px', height: 'auto', marginBottom: '20px' }} />
-                
-                <div style={styles.loginBox}>
-                    <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Admin Login</h2>
-                    {loginError && <p style={styles.error}>{loginError}</p>}
-                    
-                    <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        <div>
-                            <label style={styles.label}>Username</label>
-                            <input 
-                                type="text" 
-                                value={credentials.username}
-                                onChange={(e) => setCredentials({...credentials, username: e.target.value})}
-                                required 
-                                style={styles.input}
-                            />
-                        </div>
-                        <div>
-                            <label style={styles.label}>Password</label>
-                            <input 
-                                type="password" 
-                                value={credentials.password}
-                                onChange={(e) => setCredentials({...credentials, password: e.target.value})}
-                                required 
-                                style={styles.input}
-                            />
-                        </div>
-                        <button type="submit" style={styles.button}>Secure Login</button>
-                    </form>
+                <div style={{textAlign: 'center'}}>
+                    <img src={logo} alt="HUST Logo" style={{ width: '150px', height: 'auto', marginBottom: '20px' }} />
+                    <div style={styles.loginBox}>
+                        <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Admin Login</h2>
+                        {loginError && <p style={styles.error}>{loginError}</p>}
+                        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                            <div>
+                                <label style={styles.label}>Username</label>
+                                <input type="text" value={credentials.username} onChange={(e) => setCredentials({...credentials, username: e.target.value})} required style={styles.input} />
+                            </div>
+                            <div>
+                                <label style={styles.label}>Password</label>
+                                <input type="password" value={credentials.password} onChange={(e) => setCredentials({...credentials, password: e.target.value})} required style={styles.input} />
+                            </div>
+                            <button type="submit" style={styles.button}>Secure Login</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         );
     }
 
-    // ==========================================
-    // RENDER: Admin Dashboard (Protected)
-    // ==========================================
     return (
         <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '1000px', margin: '0 auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2>Admin Control Center</h2>
-                <button onClick={() => setIsAuthenticated(false)} style={{...styles.button, backgroundColor: '#d9534f', padding: '8px 12px'}}>Logout</button>
-                    <img src={logo} alt="HUST Logo" style={{ width: '150px', height: 'auto', marginBottom: '20px' }} />
-          
+                <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
+                    <img src={logo} alt="HUST Logo" style={{ width: '100px', height: 'auto' }} />
+                    <button onClick={() => setIsAuthenticated(false)} style={{...styles.button, backgroundColor: '#d9534f', padding: '8px 12px', width: 'auto'}}>Logout</button>
+                </div>
             </div>
             
-            {/* Scanner Controls */}
             <div style={{ marginBottom: '30px', padding: '20px', backgroundColor: '#f9f9f9', borderRadius: '8px', border: '1px solid #ddd' }}>
                 <h3>Entry Validation</h3>
                 {!isScanning && (
@@ -163,13 +135,29 @@ const AdminPanel = () => {
                     }}>
                         <h4 style={{ margin: '0 0 10px 0' }}>{scanResult.message}</h4>
                         {scanResult.participant && (
-                            <p style={{ margin: 0 }}><strong>Attendee:</strong> {scanResult.participant.fullName} | {scanResult.participant.matricNo}</p>
+                            <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                                <div style={{flex: 1}}>
+                                    <p><strong>Attendee:</strong> {scanResult.participant.fullName}</p>
+                                    <p><strong>Matric No:</strong> {scanResult.participant.matricNo}</p>
+                                </div>
+                                {scanResult.participant.paymentReceipt && (
+                                    <div style={{flex: 1, minWidth: '200px'}}>
+                                        <p style={{margin: '0 0 5px 0'}}><strong>Payment Receipt:</strong></p>
+                                        <a href={scanResult.participant.paymentReceipt} target="_blank" rel="noreferrer">
+                                            <img 
+                                                src={scanResult.participant.paymentReceipt} 
+                                                alt="Receipt" 
+                                                style={{width: '100%', maxHeight: '150px', borderRadius: '4px', border: '1px solid #999', cursor: 'zoom-in'}} 
+                                            />
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
                 )}
             </div>
 
-            {/* Participants Table */}
             <h3>Registered Participants ({participants.length})</h3>
             <div style={{ overflowX: 'auto' }}>
                 <table style={styles.table}>
@@ -177,16 +165,22 @@ const AdminPanel = () => {
                         <tr style={{ backgroundColor: '#f2f2f2' }}>
                             <th style={styles.th}>Name</th>
                             <th style={styles.th}>Matric No</th>
-                            <th style={styles.th}>Dept</th>
+                            <th style={styles.th}>Receipt</th>
                             <th style={styles.th}>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         {participants.map(p => (
-                            <tr key={p.id}>
+                            <tr key={p._id || p.id}>
                                 <td style={styles.td}>{p.fullName}</td>
                                 <td style={styles.td}>{p.matricNo}</td>
-                                <td style={styles.td}>{p.department}</td>
+                                <td style={styles.td}>
+                                    {p.paymentReceipt ? (
+                                        <a href={p.paymentReceipt} target="_blank" rel="noreferrer" style={{color: '#0056b3', textDecoration: 'underline'}}>
+                                            View Image
+                                        </a>
+                                    ) : 'No file'}
+                                </td>
                                 <td style={styles.td}>
                                     {p.isValidated 
                                         ? <span style={{color: 'green', fontWeight: 'bold'}}>✅ Validated at {p.scannedAt}</span> 
@@ -194,9 +188,6 @@ const AdminPanel = () => {
                                 </td>
                             </tr>
                         ))}
-                        {participants.length === 0 && (
-                            <tr><td colSpan="4" style={{...styles.td, textAlign: 'center'}}>No participants registered yet.</td></tr>
-                        )}
                     </tbody>
                 </table>
             </div>
@@ -205,7 +196,7 @@ const AdminPanel = () => {
 };
 
 const styles = {
-    loginContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' },
+    loginContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' },
     loginBox: { width: '100%', maxWidth: '350px', padding: '30px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', border: '1px solid #ddd' },
     label: { fontSize: '14px', fontWeight: 'bold', color: '#333', marginBottom: '5px', display: 'block' },
     input: { width: '100%', padding: '10px', fontSize: '15px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' },

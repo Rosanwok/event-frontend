@@ -169,26 +169,26 @@ const AdminPanel = () => {
                             <th style={styles.th}>Status</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {participants.map(p => (
-                            <tr key={p._id || p.id}>
-                                <td style={styles.td}>{p.fullName}</td>
-                                <td style={styles.td}>{p.matricNo}</td>
-                                <td style={styles.td}>
-                                    {p.paymentReceipt ? (
-                                        <a href={p.paymentReceipt} target="_blank" rel="noreferrer" style={{color: '#0056b3', textDecoration: 'underline'}}>
-                                            View Image
-                                        </a>
-                                    ) : 'No file'}
-                                </td>
-                                <td style={styles.td}>
-                                    {p.isValidated 
-                                        ? <span style={{color: 'green', fontWeight: 'bold'}}>✅ Validated at {p.scannedAt}</span> 
-                                        : <span style={{color: '#d9534f'}}>Pending</span>}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
+        <tbody>
+                                {participants.map(p => (
+                                    <tr key={p._id || p.id}>
+                                        <td style={styles.td}>{p.fullName}</td>
+                                        <td style={styles.td}>{p.matricNo}</td>
+                                        <td style={styles.td}>
+                                            {p.receiptPath ? (
+                                                <a href={p.receiptPath} target="_blank" rel="noreferrer" style={{color: '#0056b3', textDecoration: 'underline'}}>
+                                                    View Image
+                                                </a>
+                                            ) : 'No file'}
+                                        </td>
+                                        <td style={styles.td}>
+                                            {p.isValidated 
+                                                ? <span style={{color: 'green', fontWeight: 'bold'}}>✅ Validated at {p.scannedAt}</span> 
+                                                : <span style={{color: '#d9534f'}}>Pending</span>}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
                 </table>
             </div>
         </div>
